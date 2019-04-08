@@ -1,13 +1,19 @@
-Chap4.Classification
+Ch4. Classification
 ================
 IMSOHYUN
 2019년 4월 8일
 
+Lab: Logistic Regression, LDA, QDA, and KNN
+-------------------------------------------
+
+#### 4.6.1 The Stock Market Data
+
 ``` r
-# Chapter 4 Lab: Logistic Regression, LDA, QDA, and KNN
-
-# The Stock Market Data
-
+# This data set consists of percentage returns for the S&P 500 stock index over 1, 250 days, from the beginning of 2001 until the end of 2005. 
+# Lag1-Lag5 : the percentage returns for each of the five previous trading days
+# Volume : the number of shares traded on the previous day, in billions
+# Today : the percentage return on the date in question
+# Direction : whether the market was Up or Down on this date
 library(ISLR)
 head(Smarket)
 ```
@@ -89,9 +95,9 @@ plot(Volume)
 
 ![](Chap4_Classification_files/figure-markdown_github/setup-1.png)
 
-``` r
-# Logistic Regression
+#### 4.6.2 Logistic Regression
 
+``` r
 glm.fits=glm(Direction~Lag1+Lag2+Lag3+Lag4+Lag5+Volume,data=Smarket,family=binomial)
 summary(glm.fits)
 ```
@@ -261,9 +267,9 @@ predict(glm.fits,newdata=data.frame(Lag1=c(1.2,1.5),Lag2=c(1.1,-0.8)),type="resp
     ##         1         2 
     ## 0.4791462 0.4960939
 
-``` r
-# Linear Discriminant Analysis
+#### 4.6.3 Linear Discriminant Analysis
 
+``` r
 library(MASS)
 lda.fit=lda(Direction~Lag1+Lag2,data=Smarket,subset=train)
 lda.fit
@@ -290,7 +296,7 @@ lda.fit
 plot(lda.fit)
 ```
 
-![](Chap4_Classification_files/figure-markdown_github/setup-2.png)
+![](Chap4_Classification_files/figure-markdown_github/unnamed-chunk-2-1.png)
 
 ``` r
 lda.pred=predict(lda.fit, Smarket.2005)
@@ -352,9 +358,9 @@ sum(lda.pred$posterior[,1]>.9)
 
     ## [1] 0
 
-``` r
-# Quadratic Discriminant Analysis
+#### 4.6.4 Quadratic Discriminant Analysis
 
+``` r
 qda.fit=qda(Direction~Lag1+Lag2,data=Smarket,subset=train)
 qda.fit
 ```
@@ -387,9 +393,9 @@ mean(qda.class==Direction.2005)
 
     ## [1] 0.5992063
 
-``` r
-# K-Nearest Neighbors
+#### 4.6.5 K-Nearest Neighbors
 
+``` r
 library(class)
 train.X=cbind(Lag1,Lag2)[train,]
 test.X=cbind(Lag1,Lag2)[!train,]
@@ -426,9 +432,87 @@ mean(knn.pred==Direction.2005)
 
     ## [1] 0.5357143
 
-``` r
-# An Application to Caravan Insurance Data
+#### 4.6.6 An Application to Caravan Insurance Data
 
+``` r
+# This data set includes 85 predictors that measure demographic characteristics for 5,822 individuals. 
+# response variable : Purchase (whether or not a given individual purchases a caravan insurance policy)
+# In this data set, only 6% of people purchased caravan insurance.
+head(Caravan)
+```
+
+    ##   MOSTYPE MAANTHUI MGEMOMV MGEMLEEF MOSHOOFD MGODRK MGODPR MGODOV MGODGE
+    ## 1      33        1       3        2        8      0      5      1      3
+    ## 2      37        1       2        2        8      1      4      1      4
+    ## 3      37        1       2        2        8      0      4      2      4
+    ## 4       9        1       3        3        3      2      3      2      4
+    ## 5      40        1       4        2       10      1      4      1      4
+    ## 6      23        1       2        1        5      0      5      0      5
+    ##   MRELGE MRELSA MRELOV MFALLEEN MFGEKIND MFWEKIND MOPLHOOG MOPLMIDD
+    ## 1      7      0      2        1        2        6        1        2
+    ## 2      6      2      2        0        4        5        0        5
+    ## 3      3      2      4        4        4        2        0        5
+    ## 4      5      2      2        2        3        4        3        4
+    ## 5      7      1      2        2        4        4        5        4
+    ## 6      0      6      3        3        5        2        0        5
+    ##   MOPLLAAG MBERHOOG MBERZELF MBERBOER MBERMIDD MBERARBG MBERARBO MSKA
+    ## 1        7        1        0        1        2        5        2    1
+    ## 2        4        0        0        0        5        0        4    0
+    ## 3        4        0        0        0        7        0        2    0
+    ## 4        2        4        0        0        3        1        2    3
+    ## 5        0        0        5        4        0        0        0    9
+    ## 6        4        2        0        0        4        2        2    2
+    ##   MSKB1 MSKB2 MSKC MSKD MHHUUR MHKOOP MAUT1 MAUT2 MAUT0 MZFONDS MZPART
+    ## 1     1     2    6    1      1      8     8     0     1       8      1
+    ## 2     2     3    5    0      2      7     7     1     2       6      3
+    ## 3     5     0    4    0      7      2     7     0     2       9      0
+    ## 4     2     1    4    0      5      4     9     0     0       7      2
+    ## 5     0     0    0    0      4      5     6     2     1       5      4
+    ## 6     2     2    4    2      9      0     5     3     3       9      0
+    ##   MINKM30 MINK3045 MINK4575 MINK7512 MINK123M MINKGEM MKOOPKLA PWAPART
+    ## 1       0        4        5        0        0       4        3       0
+    ## 2       2        0        5        2        0       5        4       2
+    ## 3       4        5        0        0        0       3        4       2
+    ## 4       1        5        3        0        0       4        4       0
+    ## 5       0        0        9        0        0       6        3       0
+    ## 6       5        2        3        0        0       3        3       0
+    ##   PWABEDR PWALAND PPERSAUT PBESAUT PMOTSCO PVRAAUT PAANHANG PTRACTOR
+    ## 1       0       0        6       0       0       0        0        0
+    ## 2       0       0        0       0       0       0        0        0
+    ## 3       0       0        6       0       0       0        0        0
+    ## 4       0       0        6       0       0       0        0        0
+    ## 5       0       0        0       0       0       0        0        0
+    ## 6       0       0        6       0       0       0        0        0
+    ##   PWERKT PBROM PLEVEN PPERSONG PGEZONG PWAOREG PBRAND PZEILPL PPLEZIER
+    ## 1      0     0      0        0       0       0      5       0        0
+    ## 2      0     0      0        0       0       0      2       0        0
+    ## 3      0     0      0        0       0       0      2       0        0
+    ## 4      0     0      0        0       0       0      2       0        0
+    ## 5      0     0      0        0       0       0      6       0        0
+    ## 6      0     0      0        0       0       0      0       0        0
+    ##   PFIETS PINBOED PBYSTAND AWAPART AWABEDR AWALAND APERSAUT ABESAUT AMOTSCO
+    ## 1      0       0        0       0       0       0        1       0       0
+    ## 2      0       0        0       2       0       0        0       0       0
+    ## 3      0       0        0       1       0       0        1       0       0
+    ## 4      0       0        0       0       0       0        1       0       0
+    ## 5      0       0        0       0       0       0        0       0       0
+    ## 6      0       0        0       0       0       0        1       0       0
+    ##   AVRAAUT AAANHANG ATRACTOR AWERKT ABROM ALEVEN APERSONG AGEZONG AWAOREG
+    ## 1       0        0        0      0     0      0        0       0       0
+    ## 2       0        0        0      0     0      0        0       0       0
+    ## 3       0        0        0      0     0      0        0       0       0
+    ## 4       0        0        0      0     0      0        0       0       0
+    ## 5       0        0        0      0     0      0        0       0       0
+    ## 6       0        0        0      0     0      0        0       0       0
+    ##   ABRAND AZEILPL APLEZIER AFIETS AINBOED ABYSTAND Purchase
+    ## 1      1       0        0      0       0        0       No
+    ## 2      1       0        0      0       0        0       No
+    ## 3      1       0        0      0       0        0       No
+    ## 4      1       0        0      0       0        0       No
+    ## 5      1       0        0      0       0        0       No
+    ## 6      0       0        0      0       0        0       No
+
+``` r
 dim(Caravan)
 ```
 
