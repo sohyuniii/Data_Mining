@@ -2,8 +2,9 @@
 plot(1:10000, 1-(1-1/1:10000)^(1:10000),type='b')
 
 store <- rep(NA, 10000)
-for (i in 1:10000)
+for (i in 1:10000){
   store[i] <- sum(sample(1:100, rep=TRUE)==4) > 0
+}
 mean(store)
 
 ##### Exercise 5.5 ##### 
@@ -56,6 +57,7 @@ mean(Default[-train,]$default != pred3)  # test error
 ##### Exercise 5.7 #####
 require(ISLR)
 data(Weekly)
+dim(Weekly)
 set.seed(1)
 fit1 <- glm(Direction ~ Lag1 + Lag2, data=Weekly, family=binomial)
 summary(fit1)
