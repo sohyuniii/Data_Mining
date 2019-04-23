@@ -36,6 +36,7 @@ pred.lasso <- predict(fit.lasso, s=lambda, newx=xmat.test)
 coef.lasso <- predict(fit.lasso, type="coefficients", s=lambda)[1:ncol(College),]
 coef.lasso[coef.lasso != 0]
 length(coef.lasso[coef.lasso != 0])
+predict(fit.lasso, s=lambda, type="coefficients")
 
 set.seed(1)
 fit.pcr <- pcr(Apps~., data=train, scale=TRUE, validation="CV")
@@ -53,8 +54,7 @@ pred.pls <- predict(fit.pls, test, ncomp=10)  # min Cv at M=10
 
 err.all <- c(err.lm, err.ridge, err.lasso, err.pcr, err.pls)
 names(err.all) <- c("lm", "ridge", "lasso", "pcr", "pls")
-barplot(err.all )
-
+barplot(err.all,col=0)
 plot(test$Apps, pred.lm)
 
 
@@ -74,6 +74,7 @@ fit.ridge <- cv.glmnet(xmat.train, train$crim, alpha=0)
 pred.ridge <- predict(fit.ridge, s=lambda, newx=xmat.test)
 (err.ridge <- mean((test$crim - pred.ridge)^2))  # test error
 predict(fit.ridge, s=lambda, type="coefficients")
+plot(fit.ridge)
 
 # lasso regression model
 fit.lasso <- cv.glmnet(xmat.train, train$crim, alpha=1)
@@ -81,6 +82,9 @@ fit.lasso <- cv.glmnet(xmat.train, train$crim, alpha=1)
 pred.lasso <- predict(fit.lasso, s=lambda, newx=xmat.test)
 (err.lasso <- mean((test$crim - pred.lasso)^2))  # test error
 predict(fit.lasso, s=lambda, type="coefficients")
+grid=10^seq(10,-2,length=100)
+lasso.mod=glmnet(xmat.train, train$crim,alpha=1,lambda=grid)
+plot(lasso.mod)
 
 # predict function from chapter 6 labs
 predict.regsubsets <- function(object, newdata, id, ...){
@@ -92,6 +96,11 @@ predict.regsubsets <- function(object, newdata, id, ...){
 }
 
 # forward selection
+fit <- lm(crim~., data=train)
+f.fit <- step(fit,method='forward')
+b.fit <- step(fit,method='backward')
+
+
 fit.fwd <- regsubsets(crim~., data=train, nvmax=ncol(Boston)-1)
 (fwd.summary <- summary(fit.fwd))
 err.fwd <- rep(NA, ncol(Boston)-1)
@@ -101,19 +110,6 @@ for(i in 1:(ncol(Boston)-1)) {
 }
 plot(err.fwd, type="b", main="Test MSE for Forward Selection", xlab="Number of Predictors")
 which.min(err.fwd)
-
-# backward selection
-fit.bwd <- regsubsets(crim~., data=train, nvmax=ncol(Boston)-1)
-(bwd.summary <- summary(fit.bwd))
-err.bwd <- rep(NA, ncol(Boston)-1)
-for(i in 1:(ncol(Boston)-1)) {
-  pred.bwd <- predict(fit.bwd, test, id=i)
-  err.bwd[i] <- mean((test$crim - pred.bwd)^2)
-}
-plot(err.bwd, type="b", main="Test MSE for Backward Selection", xlab="Number of Predictors")
-which.min(err.bwd)
-
-par(mfrow=c(3,2))
 
 min.cp <- which.min(fwd.summary$cp)  
 plot(fwd.summary$cp, xlab="Number of Poly(X)", ylab="Forward Selection Cp", type="l")
@@ -139,7 +135,20 @@ min.adjr2 <- which.max(bwd.summary$adjr2)
 plot(bwd.summary$adjr2, xlab="Number of Poly(X)", ylab="Backward Selection Adjusted R^2", type="l")
 points(min.adjr2, bwd.summary$adjr2[min.adjr2], col="red", pch=4, lwd=5)
 
-err.ridge
-err.lasso
-err.fwd
-err.bwd
+set.seed(1)
+fit.pcr <- pcr(crim~., data=train, scale=TRUE, validation="CV")
+validationplot(fit.pcr, val.type="MSEP")
+summary(fit.pcr)
+pred.pcr <- predict(fit.pcr, test, ncomp=10)  # min Cv at M=16
+(err.pcr <- mean((test$crim - pred.pcr)^2))  # test error
+
+set.seed(1)
+fit.pls <- plsr(crim~., data=train, scale=TRUE, validation="CV")
+validationplot(fit.pls, val.type="MSEP")
+summary(fit.pls)
+pred.pls <- predict(fit.pls, test, ncomp=2)  # min Cv at M=10
+(err.pls <- mean((test$crim - pred.pls)^2))  # test error
+
+err.ridge ; err.lasso
+err.fwd ; err.bwd
+err.pcr ; err.pls
